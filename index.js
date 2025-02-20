@@ -26,10 +26,13 @@ async function run() {
     await client.connect();
 
 
+    const taskCollection = client.db("TaskNestDB").collection("tasks");
 
-
-
-
+    app.post("/add-task", async (req, res)=>{
+        const newTask = req.body;
+        const result = await taskCollection.insertOne(newTask)
+        res.send(result)
+    })
     
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
