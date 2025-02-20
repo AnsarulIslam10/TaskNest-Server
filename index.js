@@ -38,7 +38,7 @@ async function run() {
       res.send(result);
     });
 
-    app.put("/tasks/:id", async (req, res) => {
+    app.put("/task/:id", async (req, res) => {
       const id = req.params.id;
       const { category } = req.body;
       const filter = { _id: new ObjectId(id) };
@@ -47,13 +47,27 @@ async function run() {
       res.send(result);
     });
 
-
-    app.delete("/task/:id", async (req, res)=>{
+    app.put("/tasks/:id", async (req, res) => {
       const id = req.params.id;
-      const query = {_id: new ObjectId(id)}
-      const result = await taskCollection.deleteOne(query)
-      res.send(result)
-    })
+      const { title, description, category } = req.body;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          title: title ? title : undefined,
+          description: description ? description : undefined,
+          category: category ? category : undefined,
+        },
+      };
+      const result = await taskCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
+
+    app.delete("/task/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await taskCollection.deleteOne(query);
+      res.send(result);
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
