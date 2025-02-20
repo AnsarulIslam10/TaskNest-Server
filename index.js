@@ -26,6 +26,13 @@ async function run() {
     await client.connect();
 
     const taskCollection = client.db("TaskNestDB").collection("tasks");
+    const userCollection = client.db("TaskNestDB").collection("users");
+
+    app.post("/users", async(req, res)=>{
+      const newUser = req.body;
+      const result = await userCollection.insertOne(newUser)
+      res.send(result)
+    })
 
     app.post("/add-task", async (req, res) => {
       const newTask = req.body;
