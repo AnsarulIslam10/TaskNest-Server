@@ -28,11 +28,11 @@ async function run() {
     const taskCollection = client.db("TaskNestDB").collection("tasks");
     const userCollection = client.db("TaskNestDB").collection("users");
 
-    app.post("/users", async(req, res)=>{
+    app.post("/users", async (req, res) => {
       const newUser = req.body;
-      const result = await userCollection.insertOne(newUser)
-      res.send(result)
-    })
+      const result = await userCollection.insertOne(newUser);
+      res.send(result);
+    });
 
     app.post("/add-task", async (req, res) => {
       const newTask = req.body;
@@ -41,7 +41,12 @@ async function run() {
     });
 
     app.get("/tasks", async (req, res) => {
-      const result = await taskCollection.find().toArray();
+      const { userId } = req.query;
+      let query = {};
+      if (userId) {
+        query = { userId: userId };
+      }
+      const result = await taskCollection.find(query).toArray();
       res.send(result);
     });
 
