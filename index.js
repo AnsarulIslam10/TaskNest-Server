@@ -2,21 +2,12 @@ require("dotenv").config();
 const express = require("express");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const cors = require("cors");
-const http = require("http");
-const { Server } = require("socket.io");
 const app = express();
 const port = process.env.PORT || 5000;
 
 //middleware
 app.use(cors());
 app.use(express.json());
-
-const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: "*",
-  },
-});
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.8ggzn.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
@@ -43,10 +34,9 @@ async function run() {
       res.send(result);
     });
 
-    app.post("/add-task", async (req, res) => {
+    app.post("/tasks", async (req, res) => {
       const newTask = req.body;
       const result = await taskCollection.insertOne(newTask);
-      io.emit("taskUpdated");
       res.send(result);
     });
 
@@ -66,7 +56,6 @@ async function run() {
       const filter = { _id: new ObjectId(id) };
       const updateDoc = { $set: { category } };
       const result = await taskCollection.updateOne(filter, updateDoc);
-      io.emit("taskUpdated");
       res.send(result);
     });
 
@@ -82,32 +71,15 @@ async function run() {
         },
       };
       const result = await taskCollection.updateOne(filter, updateDoc);
-      io.emit("taskUpdated");
       res.send(result);
     });
 
-    app.delete("/task/:id", async (req, res) => {
+    app.delete("/tasks/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await taskCollection.deleteOne(query);
-      io.emit("taskUpdated");
       res.send(result);
     });
-
-    // mongodb change stream
-    const changeStream = taskCollection.watch();
-    changeStream.on("change", (change)=>{
-      console.log("Change detected:", change);
-      io.emit("taskUpdated");
-    })
-
-    io.on("connection", (socket) => {
-      console.log("User connected:", socket.id);
-      socket.on("disconnect", () => {
-        console.log("User disconnected", socket.id);
-      });
-    });
-    
 
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
@@ -125,6 +97,6 @@ app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
-server.listen(port, () => {
+app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });
